@@ -127,8 +127,17 @@ class Resource(ResourceAttributesMixin, object):
             try:
                 stype = s.get_serializer(content_type=content_type)
             except exceptions.SerializerNotAvailable:
-                return resp.content
+                if 'location' in resp.headers:
+                    resource_obj = self(url_override=resp.headers['location'])
 
+                    # restore the old behavior
+                    return resource_obj.get()
+
+                    # or just return the location?
+                    #return resp.headers['location']
+                else:
+                    return resp.content
+            
             return stype.loads(resp.content)
         else:
             return resp.content
